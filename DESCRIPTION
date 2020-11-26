@@ -1,0 +1,22 @@
+Package: mixVarClust
+Title: Model-based clustering
+Version: 0.0.0.9
+Authors@R: 
+    person(given = "Boubacar",
+           family = "Sow",
+           role = c("aut", "cre"),
+           email = "sow1618@gmail.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: mixVarClust performs clustering using mixture models. 3 models are implemented : 
+    the gaussian mixture model for continuous futures, the multinomial mixture model for categorical 
+    futures and the gaussian-multinomial mixture model for mix futures (categorical and continuous). 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports: 

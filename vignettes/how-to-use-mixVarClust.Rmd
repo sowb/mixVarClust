@@ -1,0 +1,34 @@
+---
+title: "how-to-use-mixVarClust"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{how-to-use-mixVarClust}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+# What is the R package **mixVarClust**
+
+In this document, I show
+* how to install the package an load it
+* how and use it small study on a financial dataset
+* a comparison with Rmixmod. 
+
+## How to install **mixVarClust**
+Download the package at , save it in your favorite folder. Install it by running the code below :
+```{r}
+#install.packages(path_to_file, repos = NULL, type="source")
+```
+## 
+```{r setup}
+#load the package
+library(mixVarClust)
+# functions present in the package
+help(package = mixVarClust)
+```
