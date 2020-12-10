@@ -12,12 +12,12 @@ criterionAIC(loglik, nb_params)
 \arguments{
 \item{loglik}{a numeric value. The log-liklihood of the model.}
 
-\item{nb_params}{a numeric value. The number of parameters of in the model.}
+\item{nb_params}{a numeric value. The number of parameters in the model.}
 
 \item{nb_obs}{a numeric value. The number of observations in the dataset.}
 }
 \description{
-Functions for computing the model selection criteria.
+Functions for computing the implemented model selection criteria (BIC, AIC).
 }
 \section{Functions}{
 \itemize{

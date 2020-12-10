@@ -14,6 +14,13 @@
 #'iterations. If FALSE (default), the EM is stopped, if the incomplete likelihood converge.
 #' @param nbIter a numeric value. The number of iterations desired to be performed by the EM algorithm.
 #' This parameter is used only when endIter = TRUE.
+#' @examples data("ToothGrowth")
+#' # mix data, 1 categorical and 2 continuous variables
+#' str(ToothGrowth)
+#' mod_mix <-groupMixData(ToothGrowth, 2, modelType = "spherical")
+#' ## not run
+#' #summaryResults(mod_mix)
+#' #plotResults(mod_mix, ToothGrowth)
 #' @export
 groupMixData <-
     function(D,
@@ -21,21 +28,32 @@ groupMixData <-
              modelType = "diagonal",
              randomInit = 10,
              endIter = FALSE,
-             nbIter = 10) {
+             nbIter = 100) {
         #browser()
         #Check if the dataset is a dataframe contain
-        if (!is.data.frame(D)) stop("The dataset must a be a data.frame!")
+        if (!is.data.frame(D))
+            stop("The dataset must a be a data.frame!")
+
         # Select Continuous data
         num <- sapply(D, is.numeric)
-        if(!any(num)) stop("No numeric data! The dataset must have at least 1 numeric column.")
+        if (!any(num))
+            stop("The dataset to cluster must have columns of 'numeric' type.\n")
         dataQuant <- D[, num]
         dataQuant <- as.matrix(dataQuant)
 
+        # # Check for missing values, inf values
+        # if (is.na(any(dataQuant)) ||
+        #     is.nan(any(dataQuant)) ||
+        #     is.infinite(any(dataQuant)))
+        #     stop("This package does not handle NA, NaN, Inf...!")
+
         # Select Categorical
         fac <- sapply(D, is.factor)
-        if(!any(fac)) stop("No categorical Data! The dataset must have at least one 1 column factor.")
+        if (!any(fac))
+            stop("No categorical Data! The dataset must have at least one 1 column factor.\n")
         dataQuali <- D[, fac]
-        if(is.factor(dataQuali)) dataQuali <- as.data.frame(dataQuali)
+        if (is.factor(dataQuali))
+            dataQuali <- as.data.frame(dataQuali)
 
         # One encoding of categorical data
         X <- onehot(dataQuali)
@@ -49,7 +67,8 @@ groupMixData <-
 
         for (n in 1:randomInit) {
             # Latent classes
-            classes <- factor(sample(1:K, size = nrow(D), replace = T))
+            classes <-
+                factor(sample(1:K, size = nrow(D), replace = T))
             z <- onehot(classes)[[1]]
 
             # The initial parameters
@@ -80,7 +99,8 @@ groupMixData <-
                     cov(as.matrix(dataQuant[which(z[, k] == 1), ])))
 
             # Alpha
-            alpha_kjh <- lapply(as.data.frame(z), compute_aik, dataQuali, X)
+            alpha_kjh <-
+                lapply(as.data.frame(z), compute_aik, dataQuali, X)
 
             # The incomplete log-Likelihood evaluation
             loglik <- matrix(0, ncol = K, nrow = nrow(dataQuant))
@@ -124,8 +144,9 @@ groupMixData <-
             }
             tik <- tik / rowSums(tik)
 
-            # New parameters
-            new_pk <- matrix(colSums(tik) / nrow(dataQuali), ncol = K)
+            # New proportions
+            new_pk <-
+                matrix(colSums(tik) / nrow(dataQuali), ncol = K)
 
             # New means
             new_means <-
@@ -134,15 +155,43 @@ groupMixData <-
                     as.matrix(colSums(tik[, k] * dataQuant) / sum(tik[, k]))
                 })
 
+            # # New covariance matrix
+            # m <- matrix(rep(new_means[[k]], nrow(dataQuant)),
+            #             ncol = ncol(dataQuant),
+            #             byrow = TRUE)
+            # new_matcov <-
+            #     lapply(1:K, function(k) {
+            #         as.matrix(t(dataQuant - m) %*% (as.vector(tik[, k]) * (dataQuant - m))) /
+            #             sum(tik[, k])
+            #     })
             # New covariance matrix
-            m <- matrix(rep(new_means[[k]], nrow(dataQuant)),
-                        ncol = ncol(dataQuant),
-                        byrow = TRUE)
-            new_matcov <-
-                lapply(1:K, function(k) {
-                    as.matrix(t(dataQuant - m) %*% (as.vector(tik[, k]) * (dataQuant - m))) /
-                        sum(tik[, k])
-                })
+            Wk <- lapply(seq_len(K), function(k) {
+                m <- matrix(rep(new_means[[k]], nrow(dataQuant)),
+                            ncol = ncol(dataQuant),
+                            byrow = TRUE)
+                Wk <-
+                    as.matrix(t(dataQuant - m) %*% (as.vector(tik[, k]) * (dataQuant - m)))
+                Wk
+            })
+
+            if (modelType == "general") {
+                new_matcov <-
+                    lapply(seq_len(K), function(k)
+                        matCov(Wk[[k]], sum(tik[, k])))
+            } else if (modelType == "diagonal") {
+                new_matcov <-
+                    lapply(seq_len(K), function(k)
+                        matCov_lkbk(Wk[[k]], sum(tik[, k]), nx = ncol(dataQuant)))
+            } else if (modelType == "spherical") {
+                new_matcov <-
+                    lapply(seq_len(K), function(k)
+                        matCov_lkI(Wk[[k]], sum(tik[, k]), nx = ncol(dataQuant)))
+            } else{
+                stop(
+                    "Choose a correct model type. 3 possible models : general, diagonal or spherical. \n"
+                )
+                break
+            }
 
             # Multinomial parameters
             new_alpha_kjh <-
@@ -171,21 +220,21 @@ groupMixData <-
             # Stopping the algorithm with predifined number of iterations
             iter_nb = iter_nb + 1
             if ((endIter == TRUE) & (iter_nb == nbIter)) {
-                cat(
-                    "Algorithm stopped using the pre-defined number of iterations. Number of iterations = ",
-                    nbIter,
-                    "."
-                )
+                # cat(
+                #     "Algorithm stopped using the pre-defined number of iterations. Number of iterations = ",
+                #     nbIter,
+                #     ".\n"
+                # )
                 break
             } else if # The algorithm is stopped using a threshold for the relative
             # change of the Likelihood : when the difference between the two
             # last loglik is smaller than 1e-6.
             (abs(L[length(L)] - L[length(L) - 1]) <= 1e-6) {
-                cat(
-                    "Algorithm stopped using the convergence of the log-likelihood. Convergence after : ",
-                    iter_nb,
-                    "iterations."
-                )
+                # cat(
+                #     "Algorithm stopped using the convergence of the log-likelihood. Convergence after : ",
+                #     iter_nb,
+                #     "iterations.\n"
+                # )
                 break
             }
             #
@@ -205,9 +254,11 @@ groupMixData <-
 
         # Print the results
         res <- list(
+            nb_iter = iter_nb,
             nb_obs = nrow(D),
             nb_var = ncol(dataQuali) + ncol(dataQuant),
             clusters = groups,
+            model = modelType,
             proportions = pk,
             gaussian_prms.means = means,
             gaussian_prms.mat_cov = mat_cov,

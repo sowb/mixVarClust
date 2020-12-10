@@ -10,7 +10,7 @@ groupMixData(
   modelType = "diagonal",
   randomInit = 10,
   endIter = FALSE,
-  nbIter = 10
+  nbIter = 100
 )
 }
 \arguments{
@@ -35,4 +35,13 @@ This parameter is used only when endIter = TRUE.}
 Clustering of a dataset with mix variables (gaussian and multinomial) and unknown labels. The quantitative features are assumed to be mixtures of gaussian distributions. The categorical features are assumed to be
 mixtures of multinomial distributions. The quantitative and qualitative variables are assumed to be
 independent with respect to the clusters.
+}
+\examples{
+data("ToothGrowth")
+# mix data, 1 categorical and 2 continuous variables
+str(ToothGrowth)
+mod_mix <-groupMixData(ToothGrowth, 2, modelType = "spherical")
+## not run
+#summaryResults(mod_mix)
+#plotResults(mod_mix, ToothGrowth)
 }

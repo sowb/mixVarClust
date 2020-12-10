@@ -11,30 +11,34 @@
 #'@importFrom utils head tail
 #'@export
 summaryResults <- function(object){
-    cat("\n==============================================================\n")
-    cat("Number of Observations = ", object$nb_obs)
-    cat("\nNumber of variables = ", object$nb_var)
+    cat("\n==============================================================")
+    cat("\nNumber of Observations = ", object$nb_obs)
+    cat("\nNumber of Variables = ", object$nb_var)
     cat("\nNumber of Clusters = ", ncol(object$proportions))
-    cat("\n==============================================================\n")
+    cat("\n==============================================================")
     #cat("Model type : Mixture model gaussian and multinomial")
     cat("\nLog-liklihood = ", object$log.likelihood)
     cat("\nBIC criterion = ", object$BIC)
     cat("\nAIC criterion = ", object$AIC)
-    cat("\n==============================================================\n")
+    if(is.character(object$model)) cat("\nGaussian Model =", object$model)
+    cat("\nEM algorithm converged after = ", object$nb_iter, "iterations.")
+    cat("\n==============================================================")
     for (i in seq_len(ncol(object$proportions))){
-        cat("\nCLUSTER ", i, "\n==============================================================\n")
-        cat("** Proportion = ", round(object$proportions[,i], 3))
+        cat("\nCLUSTER ", i, "\n==============================================================")
+        cat("\n+++PROPORTIONS = ", round(object$proportions[,i], 3))
         if(class(object)=="gaussianClust" || class(object)=="mixClust"){
-            cat("\n** Gaussian Parameters---------------------------------------- ", "\n -Means :\n")
-            print(round(object$gaussian_prms.means[[i]], 3))
-            cat("\n -VarCov matrix :\n ")
+            #cat("\nGaussian Parameters---------------------------------------- ")
+            cat("\n+++MEANS :\n")
+            print(round(t(object$gaussian_prms.means[[i]]), 3))
+            cat("\n+++VARIANCE-COV MAT :\n ")
             print(round(object$gaussian_prms.mat_cov[[i]], 3))
         }
         if(class(object)=="multinomialClust" || class(object)=="mixClust"){
             ak <- round(object$multinomial_parameters[[i]],3)
             #colnames(ak) <-  colnames(dataQuali)
             ak[is.na(ak)] <- "."
-            cat("\n** Multinomial Parameters------------------------------------- ", "\n -Alpha : \n")
+            #cat("\nMultinomial Parameters------------------------------------- ")
+            cat("\n+++PROBABILITIES alpha : \n")
             # for(x in 1:nrow(ak)) cat("\t\t\n")
             print(noquote(format(ak, justify = "right")))
         }

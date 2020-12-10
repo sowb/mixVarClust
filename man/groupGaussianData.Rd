@@ -8,13 +8,13 @@ groupGaussianData(
   D,
   K,
   modelType = "diagonal",
-  randomInit = 100,
+  randomInit = 10,
   endIter = FALSE,
-  nbIter = 10
+  nbIter = 100
 )
 }
 \arguments{
-\item{D}{The Data to group. A matrix, or data.frame containing continuous variable(s)}
+\item{D}{A matrix, or data.frame containing continuous variable(s)}
 
 \item{K}{The desired number of clusters}
 
@@ -35,12 +35,13 @@ This parameter is used only when endIter = TRUE.}
 "gaussianClust" object, which contains the clustering results
 }
 \description{
-This function perform clustering of a univariate and multivariate continuous futures by using a gaussian mixture model.
+This function performs a clustering of a univariate or multivariate continuous futures by using a gaussian mixture model.
 }
 \examples{
 data("iris")
 mod_gaussian <- groupGaussianData(iris[-5], 3, modelType = "diagonal", endIter = FALSE)
+## not run
 #summaryResults(mod_gaussian)
-#plotResults(mod_gaussian)
+#plotResults(mod_gaussian, iris)
 
 }

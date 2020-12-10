@@ -4,13 +4,15 @@
 \alias{plotResults}
 \title{Visualization of the obtained clusters}
 \usage{
-plotResults(object, D)
+plotResults(object, D, axis = c(1, 2))
 }
 \arguments{
 \item{object}{mixclust object. 3 possible objects : "mixClust",
 gaussianClust", "multinomialClust".}
 
 \item{D}{The dataset containing quantitative variable and/or qualitative variable.}
+
+\item{axis}{2 numeric values, to indicate the 2 axis to plot, if the dataset has more than >2 continuous variables.}
 }
 \description{
 Plot the results of "mixClust", "gaussianClust" and "multinomialClust" objects.

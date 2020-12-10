@@ -4,10 +4,10 @@
 \alias{groupMultinomialData}
 \title{EM for Multinomial mixtures}
 \usage{
-groupMultinomialData(D, K, randomInit = 100, endIter = FALSE, nbIter = 10)
+groupMultinomialData(D, K, randomInit = 10, endIter = FALSE, nbIter = 100)
 }
 \arguments{
-\item{D}{A Dataframe. The dataset to perform the clustering on.}
+\item{D}{A data.frame, or table, containing only categorical variable(s)}
 
 \item{K}{The desired number of clusters}
 
@@ -27,4 +27,11 @@ This parameter is used only when endIter = TRUE.}
 \description{
 This function performs clustering on a dataset composed by (d >= 1) independent categorical
 variable(s) given the latent variable.
+}
+\examples{
+data("HairEyeColor")
+mod_mult <- groupMultinomialData(HairEyeColor, 3, endIter = TRUE)
+## not run
+#summaryResults(mod_mult)
+#plotResults(mod_mult, "HairEyeColor")
 }

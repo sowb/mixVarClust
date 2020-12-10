@@ -1,34 +1,299 @@
 ---
-title: "how-to-use-mixVarClust"
+title: "How to use mixVarClust"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{how-to-use-mixVarClust}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+references:
+- id: fenner2012a
+  title: One-click science marketing
+  author:
+  - family: Fenner
+    given: Martin
+  container-title: Nature Materials
+  volume: 11
+  URL: 'http://dx.doi.org/10.1038/nmat3283'
+  DOI: 10.1038/nmat3283
+  issue: 4
+  publisher: Nature Publishing Group
+  page: 261-263
+  type: article-journal
+  issued:
+    year: 2012
+    month: 3
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", 
+  fig.align = "center",
+  fig.width = 7, 
+  fig.height = 5
 )
 ```
-# What is the R package **mixVarClust**
+## What is **mixVarClust**
+<code>mixVarClust</code> is a Model-Based Clustering package. There are 3 mixture models implemented in the package. The Gaussian mixture model, used for clustering univariate or multivariate continuous variables. The multinomial mixture model, used for clustering categorical variables. The Gaussian-multinomial mixture model, used to group mix features (Gaussian and multinomial). 
+ 
+For the Gaussian mixture model, 3 parsimonious models are implemented, including, one for each family (general, diagonal, spherical) with free parameters. Only 1 model is implemented for the multinomial case.
 
-In this document, I show
-* how to install the package an load it
-* how and use it small study on a financial dataset
-* a comparison with Rmixmod. 
+*mixVarClust* is intentionally implemented relying only on **R base** packages, namely, stats, utils, and graphics. These packages come pre-installed with R. Therfore, to use *mixVarClust*, one do not need any other external dependencies. Most of the functions of the package are implemented utilizing the `lapply` family functions. 
+
+NB: <code>mixVarClust</code> is implemented for academic training. Nevertheless, I show in this presentation that it performs well clustering data with unknown labels. 
+
+First I show how to install the package, then I present its content. Next, I illustrate how to use mixVarClust,  by comparing it to Rmixmod, for all the mixture models implemented. 
 
 ## How to install **mixVarClust**
-Download the package at , save it in your favorite folder. Install it by running the code below :
-```{r}
-#install.packages(path_to_file, repos = NULL, type="source")
+Download and install the package from github by running the code below :
+```{r eval=FALSE, include=FALSE}
+# if you have not installed "devtools" package
+install.packages("devtools") 
+devtools::install_github("https://github.com/sowb/mixVarClust")
+install_github("https://github.com/sowb/mixVarClust")
+
 ```
-## 
+
+To load the package and get help, run the following : 
 ```{r setup}
 #load the package
 library(mixVarClust)
 # functions present in the package
 help(package = mixVarClust)
 ```
+
+mixVarClust has 8 functions, including 3 for the computation of the EM algorithm :   
+
+ * *groupMixData(D,...)* performs clustering on data-sets with mixed features.   
+ * *groupGaussianData(D,...)* performs clustering on data-sets with only continuous features, using the Gaussian mixture model.    
+ * *groupMultinomialData(D, ...)* find clusters in a data-set with only categorical features, using the multinomial mixture model.  
+
+3 functions to show the results:
+
+* *summaryResults (object)* gives a summary of the clustering results.  
+* *plotResults(mod, D)* plots the clustering results.
+* *addEllipse(means, varCov)* draws ellipses. 
+
+2 functions to compute 2 criterias for the model selection : 
+
+* *criterionBIC(loglik, ...)* computes the BIC, more suitable for mixture models than AIC
+* *criterionAIC(loglik, ...) *computes the AIC. 
+
+Get help for each function using the R *help()* function. For example, on Rstudio, run the code below on your console, then read the documentation on the Help pane : 
+```{r}
+help(groupGaussianData)
+```
+
+## Comparing *mixVarClust* to *Rmixmod*. 
+<a href="http://www.mixmod.org/spip.php?article61" target="_blank">Rmixmod</a>  is a well-known R package for mixture modelling. It performs clustering, and supervised classification, of mixture models. The computations are implemented in C++, which makes the package very fast. The package implements the likelihood maximization with EM, CEM and SEM algorithms. It implements also, 14 Gaussian mixture models, 5 Multinomial mixture models, 20 models for mixed data, and 8 specific models for High Dimension data. 
+
+For more information for `Rmximod`, see the website of the authors : http://www.mixmod.org/. 
+
+To install and load Rmixmod, run: 
+```{r echo=TRUE}
+#install.packages("Rmixmod")
+library(Rmixmod)
+```
+
+Next, I compare the clustering performed by using `mixVarClust` to `Rmixmod`. For each mixture model, I check if both packages find similar results and which one is the fastest, etc. Keep in mind that, the results shown here might vary, if one changes the value of the `set.seed`. 
+
+
+### Clustering continous data with the Gaussian mixture model 
+For this comparison,  let use the iris data-set, without the label variable `Species`. Then, let us find the clusters. I start with `mixVarClust`. 
+```{r}
+# Load the dataset
+data("iris")
+# remove the output variable Species
+irisNoLabel <- iris[-5]
+str(irisNoLabel)
+```
+
+* The true proportions of the clusters : 
+```{r}
+table(iris[5])/sum(table(iris[5]))
+```
+
+#### Clustering Iris with Rmixmod
+```{r}
+set.seed(0)
+# clustering with Rmixmod
+# find the best family model automatically 
+mixmod_iris <-mixmodCluster(irisNoLabel, nbCluster=3)
+#mod_iris <-mixmodCluster(iris, nbCluster=3, model = mixmodGaussianModel(family="spherical",free.proportions=TRUE))
+summary(mixmod_iris)
+```
+
+The above clustering results show: 
+
+* The Gaussian model `Gaussian_pk_Lk_C` is chosen by default. But it is possible to choose another model:
+```{r}
+# all gaussian models in Rmixmod
+mixmodGaussianModel() 
+```
+* The BIC value for this model is 605.3974. 
+* The estimated parameters, the Proportions, the Means, and Variances are presented.
+
+The figure below shows the representation of the mixture model. Each cluster is represented by a different color (blue, red and green). The histogram shows the mixture according to each feature. The plots show the mixture in 2D, for each pair of features, the size of the ellipse indicate the variance of the cluster, its center indicates the mean of the cluster, its shape indicates the Gaussian model type used. 
+```{r fig.width=8, fig.height=6}
+plot(mixmod_iris)
+```
+
+#### Clustring iris with mixVarClust
+```{r}
+set.seed(10)
+library(mixVarClust)
+mvc_iris <- groupGaussianData(irisNoLabel, 3, modelType = "general")
+summaryResults(mvc_iris)
+```
+
+The package mixVarClust finds similar results to Rmixmod: 
+
+* using a General family model. 
+* in a different order, both packages found the same proportions (0.312, 0.333, and 0.354). 
+* the means and variances, are similar but not exactly the same. 
+* EM algorithm in mixVarClust converged after `{r} mvc_iris$nb_iter` iterations.
+
+The visualization of the results with `mixVarClust` is done by the function `plotResults`. For datasets having more than 2 features, one can choose 2 variables to plot, or use a `for` loop to plot all pairs of variables. 
+
+```{r fig.margin = TRUE, fig.width=7,fig.height=4}
+# plot 
+plotResults(mvc_iris, irisNoLabel, axis = c(1,4))
+```
+
+```{r eval=FALSE, figures-side, fig.show="hold", include=FALSE, out.width="50%"}
+# To compute all Gaussian models implemented in `mixVarClust`, and show the results :  
+par(mar = c(4, 4, .1, .1))
+for(i in c("general", "spherical", "diagonal")) {
+    mod <- groupGaussianData(irisNoLabel, 3, modelType = i)
+    cat("\n", i, "family, BIC = ", mod$BIC)
+    plotResults(mod, irisNoLabel, axis = c(1:3))
+}
+```
+
+
+### Clustering Categorical data using the Multinomial mixture model
+The data-set used here contains only categorical variables. The dataset comes with `Rmixmod`. 
+```{r}
+set.seed(2)
+library(Rmixmod)
+data(birds) # dataset from Rmixmod
+str(birds)
+```
+
+#### Clustering categorical variables with *Rmixmod* 
+In this package, 5 multinomial models are implemented. Without specifying a model in `mixmodCluster`, it returns the model `Binary_pk_Ekjh`. To specify another model :
+```{r}
+# all Rmixmod models
+mixmodMultinomialModel() 
+```
+
+Without specifying a model :
+```{r}
+set.seed(2)
+mixmod_birds <- mixmodCluster(birds, nbCluster=2)
+summary(mixmod_birds)
+```
+
+* Visualization of `Rmixmod` Results
+```{r}
+# Visualization with Rmixmod
+plot(mixmod_birds)
+```
+
+#### Clustering categorical variables with *mixVarClust* 
+`mixVarClust` contains only one multinomial model. 
+
+```{r}
+set.seed(914)
+mvc_birds <- groupMultinomialData(birds, K=2)
+summaryResults(mvc_birds)
+```
+```{r}
+# visualization
+#plotResults(mod_mult, birds)
+```
+
+* Visualization or `mixVarClust` results
+
+```{r, fig.width=7}
+# Visualization with mixVarClust
+plotResults(mvc_birds, birds)
+```
+
+* Both packages find exactly the same proportions (0.34 and 0.65).
+* 34.4% of the observations make up one cluster, while 65.6% make up an other cluster. 
+* In `Rmixmod`, the results scatter values "corresponds to the probability of being different from the most frequent modality, in a special constrained case that all modalities have the same probability except this modal value." (explained <a href="https://gforge.inria.fr/forum/message.php?msg_id=148389" target="_blank"> here</a>
+ by M. Christophe Biernacki, the senior developper of MIXMOD). 
+* In the results above, the rows are the modalities and the columns are the variables. In `mixVarClust`, the multinomial paramaters computed  are the probabilities of each modality, in each variable.  For instance, in the Cluster 2, the probability of having the modality  `male` in the first feature  is 0.507, in `female` it is 0.577 The dot ` . ` means, the corresponding modality does not exist in the variable. 
+
+
+### Clustering mix features with Gaussian-Multinomial mixture model
+Let use the dataset heterodata from `Rmixmod`. It has 2 continuous variables and 3 categorical variables. 
+
+```{r}
+library(Rmixmod)
+data("heterodata")
+str(heterodata)
+```
+
+```{r}
+summary(heterodata)
+```
+
+#### Clustering `heterodata` with Rmixmod : 
+
+```{r}
+set.seed(3)
+mixmod_het <- mixmodCluster(heterodata, 2)
+summary(mixmod_het)
+```
+The visualization of Rmixmod results:  
+For heterogenous data, we must specify which part of the results to plot, qualitative or quantitative. 
+```{r}
+plot(mixmod_het, showOnly="quantitative")
+```
+```{r eval=FALSE, include=FALSE}
+plot(mixmod_het, showOnly="qualitative")
+```
+ 
+#### Clustering  `heterodata` dataset with *mixVarClust*
+Like Rmixmod, I use the diagonal family model for the continuous part of this Gaussian-multinomial model: 
+```{r}
+set.seed(3)
+library(mixVarClust)
+mvc_het <- groupMixData(heterodata, 2, modelType = "diagonal")
+summaryResults(mvc_het)
+```
+```{r}
+plotResults(mvc_het, heterodata)
+```
+For this dataset also, both packages give comparable results :  
+
+* They find almost the same proportions.
+* The gaussian parameters are the same, but the multinomial parameters are different. 
+* The model obtained by `Rmixmod` (1617.7609) is slightly better than `mixVarClust` (1652.608). 
+
+## How fast *mixVarClust* is compared to *Rmixmod*
+Let use the package `rbenchmark` to compare the speed of  `mixVarClust` and `Rmixmod`. 
+```{r eval=TRUE, message=FALSE, include=TRUE}
+library("rbenchmark")
+benchmark(
+  mixvarclust = groupGaussianData(iris[-5], 3, modelType = "general", randomInit = 10, endIter = TRUE, nbIter = 200),
+  rmixmod = mixmodCluster(iris[-5], 3, model = mixmodGaussianModel(family="general", free.proportions=TRUE))
+)
+```
+* Rmixmod is extremely faster than my package. 
+
+## Conslusions
+
+* Overall my package `mixVarClust` performs well the clustering, almost like `Rmixmod`. 
+* But of course, slower than Rmixmod. The latter is implemented in C++. 
+* In addition, `Rmixmod` is a lot more richer, with almost 50 models. 
+
+## Problems encountered with `mixVarClust`:
+
+* In clustering continuous variables, this problem `Error in solve.default(s) : system is computationally singular: reciprocal condition number = 5.40801e-18`, might happen, but rarely. When it is the case, change the gaussian model type, or change the number of random initialisation of the algorithm. 
+
+References :
+
+

@@ -3,4 +3,4 @@ inst/doc
 mixVarClust.Rproj
 .Rbuildignore
 .Rhistory
-
+vignettes/

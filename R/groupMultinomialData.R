@@ -3,19 +3,28 @@
 #' variable(s) given the latent variable.
 #'
 #'@inheritParams groupMixData
+#'@param D A data.frame, or table, containing only categorical variable(s)
 #'@return "multinomialClust" object, which contains the clustering results
+#'@examples data("HairEyeColor")
+#'mod_mult <- groupMultinomialData(HairEyeColor, 3, endIter = TRUE)
+#' ## not run
+#' #summaryResults(mod_mult)
+#' #plotResults(mod_mult, "HairEyeColor")
 #'@export
 
 groupMultinomialData <-
   function(D,
            K,
-           randomInit = 100,
+           randomInit = 10,
            endIter = FALSE,
-           nbIter = 10) {
+           nbIter = 100) {
     # browser()
-    if (is.table(D)){
+
+    # convert table data to dataframe
+    if (is.table(D)) {
       D <- as.data.frame(D)
-      D <- as.data.frame(lapply(D, rep, D$Freq))[, which(colnames(D)!= "Freq")]
+      D <-
+        as.data.frame(lapply(D, rep, D$Freq))[, which(colnames(D) != "Freq")]
     }
     # Matrix of Dummies
     X <- onehot(D)
@@ -97,21 +106,21 @@ groupMultinomialData <-
       # Stopping the algorithm with predifined number of iterations
       iter_nb = iter_nb + 1
       if ((endIter == TRUE) & (iter_nb == nbIter)) {
-        cat(
-          "Algorithm stopped using the pre-defined number of iterations. Number of iterations = ",
-          nbIter,
-          "."
-        )
+        # cat(
+        #   "Algorithm stopped using the pre-defined number of iterations. Number of iterations = ",
+        #   nbIter,
+        #   ".\n"
+        # )
         break
       } else if # The algorithm is stopped using a threshold for the relative
       # change of the Likelihood : when the difference between the two
       # last loglik is smaller than 1e-6.
       (abs(L[length(L)] - L[length(L) - 1]) <= 1e-6) {
-        cat(
-          "Algorithm stopped using the convergence of the log-likelihood. Convergence after : ",
-          iter_nb,
-          "iterations."
-        )
+        # cat(
+        #   "Algorithm stopped using the convergence of the log-likelihood. Convergence after : ",
+        #   iter_nb,
+        #   " iterations.\n"
+        # )
         break
       }
       # end repeat
@@ -119,7 +128,7 @@ groupMultinomialData <-
 
     # Compute bic, aic, and ICL
     # Compute the total number of parameters
-    nbparams <- nbprms.multinomial(D) + K - 1
+    nbparams <- nbprms.multinomial(D) * K + 1
 
     # BIC
     b <- criterionBIC(loglik, nbparams, nrow(D))
@@ -132,6 +141,7 @@ groupMultinomialData <-
 
     # Print the results
     res <- list(
+      nb_iter = iter_nb,
       nb_obs = nrow(D),
       nb_var = ncol(D),
       clusters = group,

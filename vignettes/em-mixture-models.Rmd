@@ -300,3 +300,6 @@ $$\Theta^q = \Theta^{q+1}$$
 
 
 # References
+
+1. MIXMOD Statistical Documentation http://www.mixmod.org/IMG/pdf/statdoc_2016.pdf
+2. Bouveyron C, Celeux G, Murphy T, Raftery A (2019) *Model-based clustering and classification for data science: with applications in R*. Cambridge University Press, Cambridge
