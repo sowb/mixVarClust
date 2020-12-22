@@ -8,14 +8,10 @@ output:
   pdf_document: default
 vignette: >
   %\VignetteIndexEntry{em-mixture-models}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  TeX: { equationNumbers: { autoNumber: "AMS" } }
-});
-</script>
+
 # Introduction 
 Clustering analysis in unsupervised learning consist of finding partitions with the same structures in the data. In this context, the labels of the data are unknown as opposed to a classification with known labels. There are several techniques in machine learning designed to perform clustering with unknown labels, we can mention few of them  like k-means, autoencoders, mixture models, etc. 
 
